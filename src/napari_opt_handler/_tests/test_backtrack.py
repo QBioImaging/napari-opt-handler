@@ -222,8 +222,6 @@ def test_undo_bin(make_napari_viewer, backtrack_init, input_vals,
 )
 def test_undo_bin_exception1(make_napari_viewer, backtrack_init,
                              input_vals, expected, request):
-    # from _qtwidget import PreprocessingnWidget as pw
-
     viewer: Viewer = make_napari_viewer()
 
     _widget = pw(viewer)
@@ -267,8 +265,6 @@ def test_undo_bin_exception1(make_napari_viewer, backtrack_init,
 )
 def test_undo_bin_exception2(make_napari_viewer, backtrack_init,
                              input_vals, expected, request):
-    # from _qtwidget import PreprocessingnWidget as pw
-
     viewer: Viewer = make_napari_viewer()
 
     _widget = pw(viewer)
@@ -324,8 +320,6 @@ def test_undo_bin_exception2(make_napari_viewer, backtrack_init,
 )
 def test_undo_roi(make_napari_viewer, backtrack_init, input_vals,
                   expected, request):
-    # from _qtwidget import PreprocessingnWidget as pw
-
     viewer: Viewer = make_napari_viewer()
 
     _widget = pw(viewer)
