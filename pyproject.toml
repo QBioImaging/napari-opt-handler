@@ -5,13 +5,14 @@ description = "Optical Projection Tomography preprocessing plugin for napari"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
-  {name = "David Palecek"},
-  {email = "david@stanka.de"},
+  {name = "David Palecek", email = "david@stanka.de"},
+  {name = "Giorgia Tortora", email = "giorgia.tortora@polimi.it"}
+
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Framework :: napari",
-    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
@@ -27,20 +28,25 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy",
     "magicgui",
-    "qtpy",
     "scikit-image",
     "matplotlib",
-    "napari",
 ]
 
 [project.optional-dependencies]
 testing = [
-    "tox",
+    "pre-commit",
     "pytest",  # https://docs.pytest.org/en/latest/contents.html
     "pytest-cov",  # https://pytest-cov.readthedocs.io/en/latest/
     "pytest-qt",  # https://pytest-qt.readthedocs.io/en/latest/
-    "napari",
-    "pyqt5",
+    "pytest-mock",
+    "pytest-timeout",
+    "tox",
+]
+napari = [
+    "magicgui",
+    "napari[pyqt5]",
+    "pooch >= 1",
+    "qtpy",
 ]
 
 [project.entry-points."napari.manifest"]
