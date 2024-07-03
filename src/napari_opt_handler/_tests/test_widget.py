@@ -1,66 +1,179 @@
+#!/usr/bin/env python
+
+"""
+Tests for backtrack class
+"""
+
+import pytest
 import numpy as np
 
-from napari_opt_handler._widget import (
-    ExampleQWidget,
-    ImageThreshold,
-    threshold_autogenerate_widget,
-    threshold_magic_widget,
+
+__author__ = 'David Palecek'
+__credits__ = ['Teresa M Correia', 'Giorgia Tortora']
+__license__ = 'GPL'
+
+
+@pytest.mark.parametrize(
+    'input_vals, expected',
+    [({'flagBright': True, 'flagDark': True, 'flagExp': 'Transmission'},
+      ((np.ones((10, 5, 5)) * (10-0.1)/(11-0.1)).clip(0, 1) *
+       65535).astype(np.uint16)),
+     ({'flagBright': False, 'flagDark': True, 'flagExp': 'Transmission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': False, 'flagDark': False, 'flagExp': 'Transmission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': False, 'flagExp': 'Transmission'},
+      ((np.ones((10, 5, 5)) * 10 / 11).clip(0, 1) *
+       65535).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': True, 'flagExp': 'Emission'},
+      (np.zeros((10, 5, 5))).astype(np.uint16)),
+     # this should subtract dark only
+     ({'flagBright': False, 'flagDark': True, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': False, 'flagDark': False, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': False, 'flagExp': 'Emission'},
+      (np.zeros((10, 5, 5))).astype(np.uint16)),
+     ],
 )
+def test_corrDB1(input_vals, expected, request):
+    viewer, widget = request.getfixturevalue("prepare_widget_data1")
+    widget.flagBright.val = input_vals['flagBright']
+    widget.flagDark.val = input_vals['flagDark']
+    widget.flagExp = input_vals['flagExp']
+
+    widget.inplace.val, widget.track.val = False, False
+    widget.updateHistoryFlags()
+
+    assert widget.history._update_compatible() is False
+    assert np.array_equal(widget.corr.dark, np.ones((5, 5)) * 0.1)
+
+    widget.correctDarkBright()
+    # assert shape
+    assert viewer.layers['img'].data.shape == expected.shape
+    # assert dtype
+    assert viewer.layers['Dark-Bright-corr_img'].data.dtype == expected.dtype
+    # assert data
+    assert np.allclose(viewer.layers['Dark-Bright-corr_img'].data, expected)
+
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
 
 
-def test_threshold_autogenerate_widget():
-    # because our "widget" is a pure function, we can call it and
-    # test it independently of napari
-    im_data = np.random.random((100, 100))
-    thresholded = threshold_autogenerate_widget(im_data, 0.5)
-    assert thresholded.shape == im_data.shape
-    # etc.
+@pytest.mark.parametrize(
+    'input_vals, expected',
+    [({'flagBright': True, 'flagDark': True, 'flagExp': 'Transmission'},
+      ((np.ones((10, 5, 5)) * (10-0.1)/(8.8-0.1)).clip(0, 1) *
+       65535).astype(np.uint16)),
+     # not sure if this should be 9 or 10
+     ({'flagBright': False, 'flagDark': True, 'flagExp': 'Transmission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': False, 'flagDark': False, 'flagExp': 'Transmission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': False, 'flagExp': 'Transmission'},
+      ((np.ones((10, 5, 5)) * 10 / 8.8).clip(0, 1) *
+       65535).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': True, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5))).astype(np.uint16)),
+     # this should subtract dark only, should be 9 or 10?
+     ({'flagBright': False, 'flagDark': True, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': False, 'flagDark': False, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5)) * 10).astype(np.uint16)),
+     ({'flagBright': True, 'flagDark': False, 'flagExp': 'Emission'},
+      (np.ones((10, 5, 5))).astype(np.uint16)),
+     ],
+)
+def test_corrDB2(input_vals, expected, request):
+    viewer, widget = request.getfixturevalue("prepare_widget_data2")
+    widget.flagBright.val = input_vals['flagBright']
+    widget.flagDark.val = input_vals['flagDark']
+    widget.flagExp = input_vals['flagExp']
+
+    widget.inplace.val, widget.track.val = False, False
+    widget.updateHistoryFlags()
+
+    widget.correctDarkBright()
+    # assert shape
+    assert viewer.layers['img'].data.shape == expected.shape
+    # assert dtype
+    assert viewer.layers['Dark-Bright-corr_img'].data.dtype == expected.dtype
+    # assert data
+    assert np.allclose(viewer.layers['Dark-Bright-corr_img'].data, expected)
+
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
 
 
-# make_napari_viewer is a pytest fixture that returns a napari viewer object
-# you don't need to import it, as long as napari is installed
-# in your testing environment
-def test_threshold_magic_widget(make_napari_viewer):
-    viewer = make_napari_viewer()
-    layer = viewer.add_image(np.random.random((100, 100)))
+# test corrIntensity method
+# TODO: parametrize with more realistic cases
+def test_corrIntensity1(request):
+    viewer, widget = request.getfixturevalue("prepare_widget_data1")
+    expected = np.ones((10, 5, 5)) * 10
 
-    # our widget will be a MagicFactory or FunctionGui instance
-    my_widget = threshold_magic_widget()
+    widget.inplace.val, widget.track.val = False, False
+    widget.updateHistoryFlags()
 
-    # if we "call" this object, it'll execute our function
-    thresholded = my_widget(viewer.layers[0], 0.5)
-    assert thresholded.shape == layer.data.shape
-    # etc.
+    assert widget.history._update_compatible() is False
+    assert np.array_equal(widget.corr.dark, np.ones((5, 5)) * 0.1)
 
+    widget.correctIntensity()
+    # assert shape
+    assert viewer.layers['img'].data.shape == expected.shape
+    # assert dtype
+    # assert viewer.layers['Int-corr_img'].data.dtype == expected.dtype
+    # assert data
+    assert np.allclose(viewer.layers['Int-corr_img'].data, expected)
 
-def test_image_threshold_widget(make_napari_viewer):
-    viewer = make_napari_viewer()
-    layer = viewer.add_image(np.random.random((100, 100)))
-    my_widget = ImageThreshold(viewer)
-
-    # because we saved our widgets as attributes of the container
-    # we can set their values without having to "interact" with the viewer
-    my_widget._image_layer_combo.value = layer
-    my_widget._threshold_slider.value = 0.5
-
-    # this allows us to run our functions directly and ensure
-    # correct results
-    my_widget._threshold_im()
-    assert len(viewer.layers) == 2
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
 
 
-# capsys is a pytest fixture that captures stdout and stderr output streams
-def test_example_q_widget(make_napari_viewer, capsys):
-    # make viewer and add an image layer using our fixture
-    viewer = make_napari_viewer()
-    viewer.add_image(np.random.random((100, 100)))
+# test calcLog method
+# TODO: parametrize with more realistic cases
+def test_calcLog1(request):
+    viewer, widget = request.getfixturevalue("prepare_widget_data1")
 
-    # create our widget, passing in the viewer
-    my_widget = ExampleQWidget(viewer)
+    widget.inplace.val, widget.track.val = False, False
+    widget.updateHistoryFlags()
+    expected = -np.log10(np.ones((10, 5, 5)) * 10)
 
-    # call our widget method
-    my_widget._on_click()
+    assert widget.history._update_compatible() is False
+    assert np.array_equal(widget.corr.dark, np.ones((5, 5)) * 0.1)
 
-    # read captured output and check that it's as we expected
-    captured = capsys.readouterr()
-    assert captured.out == "napari has 1 layers\n"
+    widget.calcLog()
+    # assert shape
+    assert viewer.layers['img'].data.shape == expected.shape
+    # assert dtype
+    # assert viewer.layers['Log_img'].data.dtype == expected.dtype
+    # assert data
+    assert np.allclose(viewer.layers['-Log_img'].data, expected)
+
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
+
+
+def test_show_image(request):
+    _, widget = request.getfixturevalue("prepare_widget_data1")
+    widget.inplace.val, widget.track.val = False, False
+    widget.updateHistoryFlags()
+
+    assert widget.history._update_compatible() is False
+
+    widget.show_image(np.ones((5, 5, 5)), 'new_image')
+    assert widget.viewer.layers['new_image'].data.shape == (5, 5, 5)
+    assert np.array_equal(widget.viewer.layers['new_image'].data,
+                          np.ones((5, 5, 5)))
+
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
