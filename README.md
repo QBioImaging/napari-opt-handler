@@ -1,6 +1,6 @@
 # napari-opt-handler
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-opt-handler.svg?color=green)](https://github.com/QBioImaging/napari-opt-handler/raw/main/LICENSE)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-opt-handler.svg?color=green)](https://raw.githubusercontent.com/QBioImaging/napari-opt-handler/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-opt-handler.svg?color=green)](https://pypi.org/project/napari-opt-handler)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-opt-handler.svg?color=green)](https://python.org)
 [![tests](https://github.com/QBioImaging/napari-opt-handler/workflows/tests/badge.svg)](https://github.com/QBioImaging/napari-opt-handler/actions)
