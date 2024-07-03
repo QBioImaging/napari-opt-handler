@@ -59,8 +59,10 @@ napari-opt-handler = "napari_opt_handler:napari.yaml"
 "User Support" = "https://github.com/QBioImaging/napari-opt-handler/issues"
 
 [build-system]
-requires = ["setuptools>=42.0.0", "wheel"]
+requires = ["setuptools>=42.0.0", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.setuptools]
 include-package-data = true
@@ -70,10 +72,6 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "*" = ["*.yaml"]
-
-
-[tool.setuptools.dynamic]
-version = {attr = "napari_opt_handler.__init__.__version__"}
 
 [tool.black]
 line-length = 79
