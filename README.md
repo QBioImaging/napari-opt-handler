@@ -21,7 +21,45 @@ and review the napari docs for plugin developers:
 https://napari.org/stable/plugins/index.html
 -->
 
-## Installation
+place for the gif
+<img src="" width="700"/>
+
+Jump to:
+- [Usage](#usage)
+  - [Starting point](#starting-point)
+  - [Global settings](#settings)
+  - [Corrections](#corrections)
+  - [Other](#other)
+- [Installation](#installation)
+- [Troubleshooting installation](#troubleshooting-installation)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+
+## 🛀 Usage
+
+### Starting point
+1. Data streamed from ImSwitch OPT widget (see details here[LINK])
+2. Loaded images as data stack
+3. Other stack 3D volume data formats
+
+### Global settings
+Tracking
+
+Inplace operations
+
+### Corrections
+Dark-field correction
+Bright-field correction
+Bad-pixel correction
+Intensity correction
+
+### Other
+Binning
+ROI
+-Log
+
+## 💻 Installation
 
 You can install `napari-opt-handler` via [pip]:
 
@@ -39,29 +77,21 @@ To install latest development version :
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
 
-## License
+## 🚓 License
 
 Distributed under the terms of the [BSD-3] license,
 "napari-opt-handler" is free and open source software
 
-## Issues
+## 🔨 Issues
 
 If you encounter any problems, please [file an issue] along with a detailed description.
 
 [napari]: https://github.com/napari/napari
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [@napari]: https://github.com/napari
-[MIT]: http://opensource.org/licenses/MIT
 [BSD-3]: http://opensource.org/licenses/BSD-3-Clause
-[GNU GPL v3.0]: http://www.gnu.org/licenses/gpl-3.0.txt
-[GNU LGPL v3.0]: http://www.gnu.org/licenses/lgpl-3.0.txt
-[Apache Software License 2.0]: http://www.apache.org/licenses/LICENSE-2.0
-[Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
-
 [file an issue]: https://github.com/QBioImaging/napari-opt-handler/issues
-
-[napari]: https://github.com/napari/napari
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
