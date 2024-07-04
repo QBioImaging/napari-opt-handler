@@ -38,26 +38,35 @@ Jump to:
 
 ## 🛀 Usage
 
-### Starting point
+### 🏁 Starting point
 1. Data streamed from ImSwitch OPT widget (see details here[LINK])
 2. Loaded images as data stack
 3. Other stack 3D volume data formats
+4. Small example data loaded via `File -> Open Sample`
 
-### Global settings
+### 🌍 Global settings
+TODO
 Tracking
 
 Inplace operations
 
-### Corrections
-Dark-field correction
-Bright-field correction
-Bad-pixel correction
-Intensity correction
+### 📷 Corrections
+Dark-field, Bright field and Bad-pixel corrections are directly related to the camera acquisition. Intensity correction deals on the other hand with the instability of the light source.
+#### Dark-field correction
+TODO
+#### Bright-field correction
+TODO
+#### Bad-pixel correction
+TODO
+#### Intensity correction
+TODO
+- If you want to correct for fluorescence photo-bleaching, current version of the plugin does not provide it. Please submit a feature request or upvote an existing one.
 
-### Other
-Binning
-ROI
--Log
+### ✂️ Other
+TODO
+#### Binning
+#### ROI
+#### -Log
 
 ## 💻 Installation
 
@@ -65,14 +74,12 @@ You can install `napari-opt-handler` via [pip]:
 
     pip install napari-opt-handler
 
-
-
 To install latest development version :
 
     pip install git+https://github.com/QBioImaging/napari-opt-handler.git
 
 
-## Contributing
+## 🎄 Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
