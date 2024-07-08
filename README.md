@@ -49,7 +49,7 @@ Two important global settings are available: **Inplace operations** and **Tracki
 
 If **Inplace operations** is selected,  every operation is performed on the original image. If this option is not selected, a new layer with the modified version of the image will be created and added to the viewer. 
 
-<div style="text-align: justify"> When **Inplace operations** is selected, the **Tracking** option becomes available in the widget. This option allows tracking the operations performed on the image. By pressing the `Undo` button, the last operation performed on the image is removed.</div> 
+<div align="justify">When **Inplace operations** is selected, the **Tracking** option becomes available in the widget. This option allows tracking the operations performed on the image. By pressing the `Undo` button, the last operation performed on the image is removed.</div> 
 
 ### 📷 Corrections
 Dark-field, Bright field and Bad-pixel corrections are directly related to the camera acquisition. Intensity correction deals on the other hand with the instability of the light source.
