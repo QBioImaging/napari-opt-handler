@@ -26,7 +26,7 @@ the same as the experimental exposure.
 """
 
 import numpy as np
-from .utils import img_to_int_type, is_positive, rescale_img
+from utils import img_to_int_type, is_positive, rescale_img
 import logging
 
 

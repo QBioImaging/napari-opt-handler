@@ -14,12 +14,12 @@ from qtpy.QtWidgets import (
 )
 from typing import List, Tuple
 from enum import Enum
-from .plotting import PlotDialog
+from plotting import PlotDialog
 
-from .widget_settings import Settings, Combo_box
-from .corrections import Correct
-from .backtrack import Backtrack
-from .utils import (
+from widget_settings import Settings, Combo_box
+from corrections import Correct
+from backtrack import Backtrack
+from utils import (
     select_roi,
     bin_3d,
 )
@@ -498,7 +498,7 @@ class PreprocessingnWidget(QWidget):
          self.bad_layer_select) = layer_container_and_selection(
                                     viewer=self.viewer,
                                     layer_type=Image,
-                                    container_name='bad correction image',
+                                    container_name='Bad correction image',
                                     )
         self.bad_layer_select.changed.connect(self.set_bad_layer)
 
