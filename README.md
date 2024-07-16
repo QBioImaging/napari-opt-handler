@@ -56,9 +56,9 @@ Currently, images are kept or casted to `numpy.int16` after the operations, exce
 ### 🌞🌚 Transmission vs Emission
 Transmission experiments are envisioned to be quantitative in the approximation of the Beer-Lambert law, this means that using the bright and dark measurement one can calculate the *absorbance*, or rather *transmittance* as
 
-<img src="https://latex.codecogs.com/png.image?\dpi{110}&space;T=-\log\left(\frac{I-I_0}{I_0-I_d}\right)" />
+<img src="https://latex.codecogs.com/png.image?\dpi{110}\bg{white}&space;T=-\log\left(\frac{I-I_0}{I_0-I_d}\right)" />
 
-, where I is the measured signal, <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;I_0" /> is the bright field intensity and <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;I_d" /> are the dark counts.
+, where I is the measured signal, <img src="https://latex.codecogs.com/png.image?\dpi{110}\bg{white}&space;I_0" /> is the bright field intensity and <img src="https://latex.codecogs.com/png.image?\dpi{110}\bg{white}&space;I_d" /> are the dark counts.
 
 Emission is typically far from quantitative, because of unknown staining concentration, quenching effects, bleaching, detection path calibration, quantum yields, to name some.
 
