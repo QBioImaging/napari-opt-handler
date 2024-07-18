@@ -1,35 +1,39 @@
-import numpy as np
 import logging
+from enum import Enum
+from typing import List, Tuple
 
 import napari
-from napari.layers import Image, Points
+import numpy as np
 from magicgui.widgets import create_widget
-
+from napari.layers import Image, Points
 from qtpy.QtWidgets import (
-    QVBoxLayout, QHBoxLayout,
-    QWidget, QPushButton,
-    QRadioButton, QLabel,
-    QButtonGroup, QGroupBox,
-    QMessageBox, QTabWidget, QPlainTextEdit,
+    QButtonGroup,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QRadioButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
-from typing import List, Tuple
-from enum import Enum
-from plotting import PlotDialog
 
-from widget_settings import Settings, Combo_box
-from corrections import Correct
-from backtrack import Backtrack
-from utils import (
-    select_roi,
+from .backtrack import Backtrack
+from .corrections import Correct
+from .plotting import PlotDialog
+from .utils import (
     bin_3d,
+    select_roi,
 )
-
+from .widget_settings import Combo_box, Settings
 
 DEBUG = True
 badPxDict = {
-    'Identify Hot pxs': 'hot',
-    'Identify Dead pxs': 'dead',
-    'Identify Both': 'both',
+    "Identify Hot pxs": "hot",
+    "Identify Dead pxs": "dead",
+    "Identify Both": "both",
 }
 
 
@@ -39,9 +43,8 @@ class neighbours_choice_modes(Enum):
 
 
 def layer_container_and_selection(
-        viewer=None,
-        layer_type=Image,
-        container_name='Layer'):
+    viewer=None, layer_type=Image, container_name="Layer"
+):
     """
     Create a container and a dropdown widget to select the layer.
 
@@ -76,7 +79,7 @@ class QTextEditLogger(logging.Handler):
 
 
 class PreprocessingnWidget(QWidget):
-    name = 'Preprocessor'
+    name = "Preprocessor"
 
     def __init__(self, viewer: napari.Viewer):
         super().__init__()
@@ -109,30 +112,31 @@ class PreprocessingnWidget(QWidget):
         Raises:
             None
         """
-        logging.info('Correcting Dark and Bright')
+        logging.info("Correcting Dark and Bright")
 
         original_image = self.image_layer_select.value
         data_corr = self.corr.correct_dark_bright(
-                        original_image.data,
-                        useDark=self.flagDark.val,
-                        useBright=self.flagBright.val,
-                        modality=self.flagExp,
-                        )
+            original_image.data,
+            useDark=self.flagDark.val,
+            useBright=self.flagBright.val,
+            modality=self.flagExp,
+        )
 
         # history update
         if self.history.inplace:
-            new_data = {'operation': 'corrDB',
-                        'data': data_corr}
-            data_corr = self.history.update_history(original_image,
-                                                    new_data)
+            new_data = {"operation": "corrDB", "data": data_corr}
+            data_corr = self.history.update_history(original_image, new_data)
 
         # display corrected image
-        self.show_image(data_corr,
-                        'Dark-Bright-corr_' + original_image.name,
-                        original_image.contrast_limits)
+        self.show_image(
+            data_corr,
+            "Dark-Bright-corr_" + original_image.name,
+            original_image.contrast_limits,
+        )
 
-    def ask_correct_bad_pixels(self, hotPxs: List[Tuple],
-                               deadPxs: List[Tuple]) -> Enum:
+    def ask_correct_bad_pixels(
+        self, hotPxs: List[Tuple], deadPxs: List[Tuple]
+    ) -> Enum:
         """Ask the user if they want to correct all the bad pixels.
 
         This method displays a message box asking the user if they want
@@ -151,9 +155,11 @@ class PreprocessingnWidget(QWidget):
         """
         dlg = QMessageBox(self)
         dlg.setWindowTitle("Bad Pixel correction")
-        dlg.setText("Do you want to correct all those pixels! \n"
-                    "It can take a while. \n"
-                    f"N_hot: {len(hotPxs)} + N_dead: {len(deadPxs)}")
+        dlg.setText(
+            "Do you want to correct all those pixels! \n"
+            "It can take a while. \n"
+            f"N_hot: {len(hotPxs)} + N_dead: {len(deadPxs)}"
+        )
         dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         return dlg.exec_()
 
@@ -167,14 +173,14 @@ class PreprocessingnWidget(QWidget):
         Returns:
             None
         """
-        labels = np.zeros(self.bad_layer_select.value.data.shape,
-                          dtype=np.uint8)
+        labels = np.zeros(
+            self.bad_layer_select.value.data.shape, dtype=np.uint8
+        )
         if len(self.corr.hot_pxs) > 0:
             labels[tuple(zip(*self.corr.hot_pxs))] = 1
         if len(self.corr.dead_pxs) > 0:
             labels[tuple(zip(*self.corr.dead_pxs))] = 2
-        self.viewer.add_labels(labels,
-                               name='Bad-pixels')
+        self.viewer.add_labels(labels, name="Bad-pixels")
 
     def correctBadPixels(self) -> None:
         """Corrects hot pixels in the image.
@@ -191,11 +197,13 @@ class PreprocessingnWidget(QWidget):
         original_image = self.image_layer_select.value
 
         # init correction class
-        logging.info('Correcting hot pixels.')
+        logging.info("Correcting hot pixels.")
         self.corr.std_mult = self.std_cutoff.val
         self.corr.get_bad_pxs(mode=self.flagBad)
         hotPxs, deadPxs = self.corr.hot_pxs, self.corr.dead_pxs
-        logging.info(f'Hot pixels: {len(hotPxs)}, Dead pixels: {len(deadPxs)}')
+        logging.info(
+            "Hot pixels: %d, Dead pixels: %d", len(hotPxs), len(deadPxs)
+        )
 
         if self.ask_correct_bad_pixels(hotPxs, deadPxs) == QMessageBox.No:
             self.add_bad_pixels_labels()
@@ -203,25 +211,28 @@ class PreprocessingnWidget(QWidget):
 
         # Correction is done, TODO: ooptimized for the volumes and threaded
         # TODO: show progress bar in the widget.
-        data_corr = np.zeros(original_image.data.shape,
-                             dtype=original_image.data.dtype)
+        data_corr = np.zeros(
+            original_image.data.shape, dtype=original_image.data.dtype
+        )
         for i, img in enumerate(original_image.data):
             data_corr[i] = self.corr.correctBadPxs(img)
 
         # history update
         if self.history.inplace:
-            new_data = {'operation': 'corrBP',
-                        'data': data_corr,
-                        'mode': self.flagBad,
-                        'hot_pxs': hotPxs,
-                        'dead_pxs': deadPxs,
-                        }
-            data_corr = self.history.update_history(original_image,
-                                                    new_data)
+            new_data = {
+                "operation": "corrBP",
+                "data": data_corr,
+                "mode": self.flagBad,
+                "hot_pxs": hotPxs,
+                "dead_pxs": deadPxs,
+            }
+            data_corr = self.history.update_history(original_image, new_data)
 
-        self.show_image(data_corr,
-                        'Bad-px-corr_' + original_image.name,
-                        original_image.contrast_limits)
+        self.show_image(
+            data_corr,
+            "Bad-px-corr_" + original_image.name,
+            original_image.contrast_limits,
+        )
 
     def correctIntensity(self) -> None:
         """Corrects the intensity of the image.
@@ -231,16 +242,15 @@ class PreprocessingnWidget(QWidget):
         image data accordingly. If the correction is performed in-place, it
         also updates the history of the image.
         """
-        logging.info('Correcting intensity.')
+        logging.info("Correcting intensity.")
 
         # data to correct
         original_image = self.image_layer_select.value
 
         # intensity correction
         data_corr, corr_dict = self.corr.correct_int(
-                                    original_image.data,
-                                    use_bright=False,
-                                    rect_dim=self.rectSize.val)
+            original_image.data, use_bright=False, rect_dim=self.rectSize.val
+        )
 
         # open widget with a intensity plots
         self.plotDialog = PlotDialog(self, corr_dict)
@@ -249,15 +259,18 @@ class PreprocessingnWidget(QWidget):
 
         # history update
         if self.history.inplace:
-            new_data = {'operation': 'corrInt',
-                        'data': data_corr,
-                        'rect_dim': self.rectSize.val,
-                        }
+            new_data = {
+                "operation": "corrInt",
+                "data": data_corr,
+                "rect_dim": self.rectSize.val,
+            }
             data_corr = self.history.update_history(original_image, new_data)
 
-        self.show_image(data_corr,
-                        'Int-corr_' + original_image.name,
-                        original_image.contrast_limits)
+        self.show_image(
+            data_corr,
+            "Int-corr_" + original_image.name,
+            original_image.contrast_limits,
+        )
 
     def select_ROIs(self):
         """Selects regions of interest (ROIs) based on the given points.
@@ -274,29 +287,35 @@ class PreprocessingnWidget(QWidget):
         try:
             points = self.points_layer_select.value.data
         except AttributeError:
-            logging.error('No points layer selected.')
+            logging.error("No points layer selected.")
             return
 
-        logging.info(f'UL corner coordinates: {points[0][1:].astype(int)}')
+        logging.info("UL corner coordinates: %d", points[0][1:].astype(int))
 
         # DP: do I need roi pars for tracking?
-        selected_roi, roi_pars = select_roi(original_image.data,
-                                            points[-1],  # last point
-                                            self.roi_height.val,
-                                            self.roi_width.val)
+        selected_roi, roi_pars = select_roi(
+            original_image.data,
+            points[-1],  # last point
+            self.roi_height.val,
+            self.roi_width.val,
+        )
 
         # history update
         if self.history.inplace:
-            new_data = {'operation': 'roi',
-                        'data': selected_roi,
-                        'roi_def': roi_pars,
-                        }
-            selected_roi = self.history.update_history(original_image,
-                                                       new_data)
+            new_data = {
+                "operation": "roi",
+                "data": selected_roi,
+                "roi_def": roi_pars,
+            }
+            selected_roi = self.history.update_history(
+                original_image, new_data
+            )
 
-        self.show_image(selected_roi,
-                        'ROI_' + original_image.name,
-                        original_image.contrast_limits)
+        self.show_image(
+            selected_roi,
+            "ROI_" + original_image.name,
+            original_image.contrast_limits,
+        )
 
     def bin_stack(self):
         """Bins the selected image stack by the specified bin factor.
@@ -310,33 +329,36 @@ class PreprocessingnWidget(QWidget):
         history with the updated binned stack.
         """
         if self.bin_factor.val == 1:
-            logging.info('Bin factor is 1, nothing to do.')
+            logging.info("Bin factor is 1, nothing to do.")
             return
 
         original_image = self.image_layer_select.value
 
         # evaluate maximum possible bin factor
         if self.bin_factor.val > min(original_image.data.shape):
-            raise ValueError('Bin factor is too large for the image size.')
+            raise ValueError("Bin factor is too large for the image size.")
 
         binned_roi = bin_3d(original_image.data, self.bin_factor.val)
         logging.info(
-            'Original shape: %s \n binned shape: %s',
+            "Original shape: %s \n binned shape: %s",
             original_image.data.shape,
-            binned_roi.shape)
+            binned_roi.shape,
+        )
 
         # history update
         if self.history.inplace:
-            new_data = {'operation': 'bin',
-                        'data': binned_roi,
-                        'bin_factor': self.bin_factor.val,
-                        }
-            binned_roi = self.history.update_history(original_image,
-                                                     new_data)
+            new_data = {
+                "operation": "bin",
+                "data": binned_roi,
+                "bin_factor": self.bin_factor.val,
+            }
+            binned_roi = self.history.update_history(original_image, new_data)
 
-        self.show_image(binned_roi,
-                        'binned_' + original_image.name,
-                        original_image.contrast_limits)
+        self.show_image(
+            binned_roi,
+            "binned_" + original_image.name,
+            original_image.contrast_limits,
+        )
 
     def calcLog(self):
         """Calculate the logarithm of the image data.
@@ -345,19 +367,21 @@ class PreprocessingnWidget(QWidget):
         the displayed image accordingly. It also updates the history if the
         operation is performed in-place.
         """
-        logging.info('Calculating -Log')
+        logging.info("Calculating -Log")
         original_image = self.image_layer_select.value
         log_image = -np.log10(original_image.data)
 
         if self.history.inplace:
-            new_data = {'operation': 'log',
-                        'data': log_image,
-                        }
+            new_data = {
+                "operation": "log",
+                "data": log_image,
+            }
             log_image = self.history.update_history(original_image, new_data)
 
-        self.show_image(log_image,
-                        '-Log_' + original_image.name,
-                        )
+        self.show_image(
+            log_image,
+            "-Log_" + original_image.name,
+        )
 
     def undoHistory(self):
         """Undo the last operation in the history.
@@ -370,7 +394,7 @@ class PreprocessingnWidget(QWidget):
 
         # reset contrast limits
         self.image_layer_select.value.reset_contrast_limits()
-        logging.info(f'Undoing {last_op}')
+        logging.info("Undoing %s", last_op)
 
     ##################
     # Helper methods #
@@ -402,9 +426,12 @@ class PreprocessingnWidget(QWidget):
         self.bright_layer_select.reset_choices(event)
         self.points_layer_select.reset_choices(event)
 
-    def show_image(self, image_values: np.ndarray,
-                   fullname: str,
-                   contrast: List[float] = None):
+    def show_image(
+        self,
+        image_values: np.ndarray,
+        fullname: str,
+        contrast: List[float] = None,
+    ):
         """
         Show an image in the napari viewer.
 
@@ -423,15 +450,16 @@ class PreprocessingnWidget(QWidget):
                 self.viewer.layers[fullname].reset_contrast_limits()
 
         else:
-            self.viewer.add_image(image_values,
-                                  name=fullname,
-                                  contrast_limits=contrast,
-                                  interpolation2d='linear')
+            self.viewer.add_image(
+                image_values,
+                name=fullname,
+                contrast_limits=contrast,
+                interpolation2d="linear",
+            )
 
     def set_preprocessing(self, *args):
-        """ Sets preprocessing parameters
-        """
-        if hasattr(self, 'h'):
+        """Sets preprocessing parameters"""
+        if hasattr(self, "h"):
             self.h.inplace_val = self.inplace.val
             self.h.track_val = self.track.val
             self.h.cutoff_val = self.std_cutoff.val
@@ -448,21 +476,21 @@ class PreprocessingnWidget(QWidget):
         self.history.set_settings(self.inplace.val, self.track.val)
 
     def set_bad_layer(self):
-        """ Set the bad pixel layer for correction."""
+        """Set the bad pixel layer for correction."""
         if self.bad_layer_select.value is not None:
-            logging.info('Setting bad pixel layer')
+            logging.info("Setting bad pixel layer")
             self.corr.set_bad(self.bad_layer_select.value.data)
 
     def set_dark_layer(self):
-        """ Set the dark layer for correction."""
+        """Set the dark layer for correction."""
         if self.dark_layer_select.value is not None:
-            logging.info('Setting dark layer')
+            logging.info("Setting dark layer")
             self.corr.set_dark(self.dark_layer_select.value.data)
 
     def set_bright_layer(self):
-        """ Set the bright layer for correction."""
+        """Set the bright layer for correction."""
         if self.bright_layer_select.value is not None:
-            logging.info('Setting bright layer')
+            logging.info("Setting bright layer")
             self.corr.set_bright(self.bright_layer_select.value.data)
 
     ##############
@@ -487,43 +515,48 @@ class PreprocessingnWidget(QWidget):
         self.selectProcessingMode(mode_layout)
 
         # layers selection containers
-        (image_selection_container,
-         self.image_layer_select) = layer_container_and_selection(
-                                        viewer=self.viewer,
-                                        layer_type=Image,
-                                        container_name='Image to analyze',
-                                        )
+        (image_selection_container, self.image_layer_select) = (
+            layer_container_and_selection(
+                viewer=self.viewer,
+                layer_type=Image,
+                container_name="Image to analyze",
+            )
+        )
 
-        (bad_image_selection_container,
-         self.bad_layer_select) = layer_container_and_selection(
-                                    viewer=self.viewer,
-                                    layer_type=Image,
-                                    container_name='Bad correction image',
-                                    )
+        (bad_image_selection_container, self.bad_layer_select) = (
+            layer_container_and_selection(
+                viewer=self.viewer,
+                layer_type=Image,
+                container_name="Bad correction image",
+            )
+        )
         self.bad_layer_select.changed.connect(self.set_bad_layer)
 
-        (dark_image_selection_container,
-         self.dark_layer_select) = layer_container_and_selection(
-                                        viewer=self.viewer,
-                                        layer_type=Image,
-                                        container_name='Dark correction image',
-                                        )
+        (dark_image_selection_container, self.dark_layer_select) = (
+            layer_container_and_selection(
+                viewer=self.viewer,
+                layer_type=Image,
+                container_name="Dark correction image",
+            )
+        )
         self.dark_layer_select.changed.connect(self.set_dark_layer)
 
-        (bright_image_selection_container,
-         self.bright_layer_select) = layer_container_and_selection(
-                            viewer=self.viewer,
-                            layer_type=Image,
-                            container_name='Bright correction image',
-                            )
+        (bright_image_selection_container, self.bright_layer_select) = (
+            layer_container_and_selection(
+                viewer=self.viewer,
+                layer_type=Image,
+                container_name="Bright correction image",
+            )
+        )
         self.bright_layer_select.changed.connect(self.set_bright_layer)
 
-        (points_selection_container,
-         self.points_layer_select) = layer_container_and_selection(
-                            viewer=self.viewer,
-                            layer_type=Points,
-                            container_name='Points layer for ROI selection',
-                            )
+        (points_selection_container, self.points_layer_select) = (
+            layer_container_and_selection(
+                viewer=self.viewer,
+                layer_type=Points,
+                container_name="Points layer for ROI selection",
+            )
+        )
 
         # layers selection layout
         image_layout = QVBoxLayout()
@@ -551,27 +584,31 @@ class PreprocessingnWidget(QWidget):
         Returns:
             None
         """
-        groupbox = QGroupBox('Global settings')
+        groupbox = QGroupBox("Global settings")
         box = QVBoxLayout()
         groupbox.setLayout(box)
 
         # layout for radio buttons
         boxSetting = QHBoxLayout()
-        self.inplace = Settings('Inplace operations',
-                                dtype=bool,
-                                initial=True,
-                                layout=boxSetting,
-                                write_function=self.set_preprocessing)
+        self.inplace = Settings(
+            "Inplace operations",
+            dtype=bool,
+            initial=True,
+            layout=boxSetting,
+            write_function=self.set_preprocessing,
+        )
 
-        self.track = Settings('Track',
-                              dtype=bool,
-                              initial=False,
-                              layout=boxSetting,
-                              write_function=self.set_preprocessing)
+        self.track = Settings(
+            "Track",
+            dtype=bool,
+            initial=False,
+            layout=boxSetting,
+            write_function=self.set_preprocessing,
+        )
 
         box.addLayout(boxSetting)
         # undo button
-        self.undoBtn = QPushButton('Undo')
+        self.undoBtn = QPushButton("Undo")
         self.undoBtn.clicked.connect(self.undoHistory)
         box.addWidget(self.undoBtn)
 
@@ -602,14 +639,17 @@ class PreprocessingnWidget(QWidget):
 
         # update visibility of track box when inplace box is changed
         self.inplace.sbox.stateChanged.connect(
-            lambda: self.track.sbox.setVisible(self.inplace.val))
+            lambda: self.track.sbox.setVisible(self.inplace.val)
+        )
         # update the label visibility of track box when inplace box is changed
         self.inplace.sbox.stateChanged.connect(
-            lambda: self.track.lab.setVisible(self.inplace.val))
+            lambda: self.track.lab.setVisible(self.inplace.val)
+        )
 
         # update visibility of undoBtn when track box is changed
         self.track.sbox.stateChanged.connect(
-            lambda: self.undoBtn.setVisible(self.track.val))
+            lambda: self.undoBtn.setVisible(self.track.val)
+        )
 
     def updateExperimentMode(self, button: QRadioButton):
         """
@@ -622,7 +662,7 @@ class PreprocessingnWidget(QWidget):
             None
         """
         self.flagExp = button.text()
-        logging.info(f'Experiment modality: {self.flagExp}')
+        logging.info("Experiment modality: %s", self.flagExp)
 
     def updateBadPixelsMode(self, button: QRadioButton) -> None:
         """
@@ -635,7 +675,7 @@ class PreprocessingnWidget(QWidget):
             None
         """
         self.flagBad = badPxDict[button.text()]
-        logging.info(f'Bad pixels option: {self.flagBad}')
+        logging.info("Bad pixels option: %s", self.flagBad)
 
     def init_logger(self):
         """
@@ -646,7 +686,8 @@ class PreprocessingnWidget(QWidget):
         """
         logTextBox = QTextEditLogger()
         logTextBox.setFormatter(
-            logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        )
         self.log = logging.getLogger()
         self.log.addHandler(logTextBox)
 
@@ -655,8 +696,9 @@ class PreprocessingnWidget(QWidget):
 
         return logTextBox
 
-    def createSettings(self, slayout: QWidget,
-                       logger: QTextEditLogger) -> None:
+    def createSettings(
+        self, slayout: QWidget, logger: QTextEditLogger
+    ) -> None:
         """
         Create the settings for the widget.
 
@@ -670,7 +712,7 @@ class PreprocessingnWidget(QWidget):
         # Linear structure to impose correct order
         tabsCorr = QTabWidget()
 
-        groupboxDark = QGroupBox('Dark/Bright Correction')
+        groupboxDark = QGroupBox("Dark/Bright Correction")
         boxAll = QVBoxLayout()
         boxExp = QHBoxLayout()
         groupboxDark.setLayout(boxAll)
@@ -679,12 +721,12 @@ class PreprocessingnWidget(QWidget):
         groupExpMode = QButtonGroup(self)
         groupExpMode.buttonClicked.connect(self.updateExperimentMode)
 
-        transExp = QRadioButton('Transmission')
+        transExp = QRadioButton("Transmission")
         transExp.setChecked(True)
         groupExpMode.addButton(transExp)
         boxExp.addWidget(transExp)
 
-        emlExp = QRadioButton('Emission')
+        emlExp = QRadioButton("Emission")
         groupExpMode.addButton(emlExp)
         boxExp.addWidget(emlExp)
         boxAll.addLayout(boxExp)
@@ -694,132 +736,147 @@ class PreprocessingnWidget(QWidget):
 
         boxInclude = QHBoxLayout()
         # checkboxes
-        self.flagDark = Settings('Include Dark',
-                                 dtype=bool,
-                                 initial=False,
-                                 layout=boxInclude,
-                                 write_function=self.set_preprocessing)
-        self.flagBright = Settings('Include Bright',
-                                   dtype=bool,
-                                   initial=False,
-                                   layout=boxInclude,
-                                   write_function=self.set_preprocessing)
+        self.flagDark = Settings(
+            "Include Dark",
+            dtype=bool,
+            initial=False,
+            layout=boxInclude,
+            write_function=self.set_preprocessing,
+        )
+        self.flagBright = Settings(
+            "Include Bright",
+            dtype=bool,
+            initial=False,
+            layout=boxInclude,
+            write_function=self.set_preprocessing,
+        )
         boxAll.addLayout(boxInclude)
         # Now comes button
-        self.addButton(boxAll, 'Correct Dark + Bright', self.correctDarkBright)
-        tabsCorr.addTab(groupboxDark, 'Dark/Bright')
+        self.addButton(boxAll, "Correct Dark + Bright", self.correctDarkBright)
+        tabsCorr.addTab(groupboxDark, "Dark/Bright")
 
         # create a qtab widget for the bad pixel correction
         # create a groupbox for bad pixel correction
-        groupboxBad = QGroupBox('Bad pixels correction')
+        groupboxBad = QGroupBox("Bad pixels correction")
         boxBad = QVBoxLayout()
         groupboxBad.setLayout(boxBad)
 
         # bad pixel correction
-        self.neigh_mode = Combo_box(name='Mode',
-                                    choices=neighbours_choice_modes,
-                                    layout=boxBad,
-                                    write_function=self.set_preprocessing,
-                                    )
-        self.std_cutoff = Settings('bad STD cutoff',
-                                   dtype=int,
-                                   initial=5,
-                                   vmin=1,
-                                   vmax=20,
-                                   layout=boxBad,
-                                   write_function=self.set_preprocessing)
+        self.neigh_mode = Combo_box(
+            name="Mode",
+            choices=neighbours_choice_modes,
+            layout=boxBad,
+            write_function=self.set_preprocessing,
+        )
+        self.std_cutoff = Settings(
+            "bad STD cutoff",
+            dtype=int,
+            initial=5,
+            vmin=1,
+            vmax=20,
+            layout=boxBad,
+            write_function=self.set_preprocessing,
+        )
 
         groupBadPxMode = QButtonGroup(self)
         groupBadPxMode.buttonClicked.connect(self.updateBadPixelsMode)
 
-        flagGetBad = QRadioButton('Identify Hot pxs')
+        flagGetBad = QRadioButton("Identify Hot pxs")
         flagGetBad.setChecked(True)
         groupBadPxMode.addButton(flagGetBad)
         boxBad.addWidget(flagGetBad)
 
-        flagGetDead = QRadioButton('Identify Dead pxs')
+        flagGetDead = QRadioButton("Identify Dead pxs")
         groupBadPxMode.addButton(flagGetDead)
         boxBad.addWidget(flagGetDead)
 
-        flagGetBoth = QRadioButton('Identify Both')
+        flagGetBoth = QRadioButton("Identify Both")
         groupBadPxMode.addButton(flagGetBoth)
         boxBad.addWidget(flagGetBoth)
 
         self.updateBadPixelsMode(groupBadPxMode.checkedButton())
 
-        self.addButton(boxBad, 'Bad pixel correction', self.correctBadPixels)
-        tabsCorr.addTab(groupboxBad, 'Bad pixels')
+        self.addButton(boxBad, "Bad pixel correction", self.correctBadPixels)
+        tabsCorr.addTab(groupboxBad, "Bad pixels")
 
         # create a groupbox for Intensity correction
-        groupboxInt = QGroupBox('Intensity correction')
+        groupboxInt = QGroupBox("Intensity correction")
         boxInt = QVBoxLayout()
         groupboxInt.setLayout(boxInt)
 
         # rectangle size of the corner of the image used for int calc
-        self.rectSize = Settings('Rectangle size',
-                                 dtype=int,
-                                 initial=50,
-                                 vmin=10,
-                                 vmax=500,
-                                 layout=boxInt,
-                                 write_function=self.set_preprocessing)
-        self.addButton(boxInt, 'Intensity correction', self.correctIntensity)
-        tabsCorr.addTab(groupboxInt, 'Intensity Corr')
+        self.rectSize = Settings(
+            "Rectangle size",
+            dtype=int,
+            initial=50,
+            vmin=10,
+            vmax=500,
+            layout=boxInt,
+            write_function=self.set_preprocessing,
+        )
+        self.addButton(boxInt, "Intensity correction", self.correctIntensity)
+        tabsCorr.addTab(groupboxInt, "Intensity Corr")
         slayout.addWidget(tabsCorr)
 
         # select ROI
         tabProcess = QTabWidget()
-        groupboxRoi = QGroupBox('ROI selection')
+        groupboxRoi = QGroupBox("ROI selection")
         boxRoi = QVBoxLayout()
         groupboxRoi.setLayout(boxRoi)
-        self.roi_height = Settings('ROI height',
-                                   dtype=int,
-                                   initial=200,
-                                   vmin=1,
-                                   vmax=5000,
-                                   layout=boxRoi,
-                                   write_function=self.set_preprocessing)
+        self.roi_height = Settings(
+            "ROI height",
+            dtype=int,
+            initial=200,
+            vmin=1,
+            vmax=5000,
+            layout=boxRoi,
+            write_function=self.set_preprocessing,
+        )
 
-        self.roi_width = Settings('ROI width',
-                                  dtype=int,
-                                  initial=200,
-                                  vmin=1,
-                                  vmax=5000,
-                                  layout=boxRoi,
-                                  write_function=self.set_preprocessing)
-        self.addButton(boxRoi, 'Select ROI', self.select_ROIs)
-        tabProcess.addTab(groupboxRoi, 'ROI')
+        self.roi_width = Settings(
+            "ROI width",
+            dtype=int,
+            initial=200,
+            vmin=1,
+            vmax=5000,
+            layout=boxRoi,
+            write_function=self.set_preprocessing,
+        )
+        self.addButton(boxRoi, "Select ROI", self.select_ROIs)
+        tabProcess.addTab(groupboxRoi, "ROI")
 
         # binning
-        groupboxBin = QGroupBox('Binning')
+        groupboxBin = QGroupBox("Binning")
         boxBin = QVBoxLayout()
         groupboxBin.setLayout(boxBin)
 
-        self.bin_factor = Settings('Bin factor',
-                                   dtype=int,
-                                   initial=2,
-                                   vmin=1,
-                                   vmax=500,
-                                   layout=boxBin,
-                                   write_function=self.set_preprocessing)
-        self.addButton(boxBin, 'Bin Stack', self.bin_stack)
-        tabProcess.addTab(groupboxBin, 'Binning')
+        self.bin_factor = Settings(
+            "Bin factor",
+            dtype=int,
+            initial=2,
+            vmin=1,
+            vmax=500,
+            layout=boxBin,
+            write_function=self.set_preprocessing,
+        )
+        self.addButton(boxBin, "Bin Stack", self.bin_stack)
+        tabProcess.addTab(groupboxBin, "Binning")
 
         # -Log
-        groupboxLog = QGroupBox('Log')
+        groupboxLog = QGroupBox("Log")
         boxLog = QVBoxLayout()
         groupboxLog.setLayout(boxLog)
 
-        self.addButton(boxLog, '-Log', self.calcLog)
-        tabProcess.addTab(groupboxLog, 'Log')
+        self.addButton(boxLog, "-Log", self.calcLog)
+        tabProcess.addTab(groupboxLog, "Log")
 
         # Adding tabs to the layout
         slayout.addWidget(tabProcess)
         slayout.addWidget(logger.widget)
 
-    def addButton(self, layout: QWidget,
-                  button_name: str,
-                  call_function: callable) -> None:
+    def addButton(
+        self, layout: QWidget, button_name: str, call_function: callable
+    ) -> None:
         """
         Add a button to the layout.
 
@@ -835,29 +892,3 @@ class PreprocessingnWidget(QWidget):
         button = QPushButton(button_name)
         button.clicked.connect(call_function)
         layout.addWidget(button)
-
-
-if __name__ == '__main__':
-    import napari
-
-    viewer = napari.Viewer()
-    optWidget = PreprocessingnWidget(viewer)
-    viewer.window.add_dock_widget(optWidget, name='OPT Preprocessing')
-    # warnings.filterwarnings('ignore')
-    if DEBUG:
-        import glob
-        # load example data from data folder
-        viewer.open('src_all/sample_data/corr_hot.tiff', name='bad')
-        viewer.open('src_all/sample_data/dark_field.tiff', name='dark')
-        viewer.open('src_all/sample_data/flat_field.tiff', name='bright')
-
-        # open OPT stack
-        viewer.open(glob.glob('src_all/sample_data/16*'),
-                    stack=True,
-                    name='OPT data')
-        # set image layer to OPT data
-        optWidget.image_layer_select.value = viewer.layers['OPT data']
-        optWidget.bad_layer_select.value = viewer.layers['bad']
-        optWidget.dark_layer_select.value = viewer.layers['dark']
-        optWidget.bright_layer_select.value = viewer.layers['bright']
-    napari.run()
