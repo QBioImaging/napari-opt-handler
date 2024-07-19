@@ -303,11 +303,39 @@ def test_PlotDialog(request):
         "stack_orig_int": [1, 2, 3, 4, 5],
         "stack_corr_int": [2, 2, 2, 2, 2],
     }
-    plot = PlotDialog(widget, report)
+    plot = PlotDialog(widget, report, "IntCorrCanvas")
     assert plot is not None
     assert plot.canvas.ax1 is not None
     assert plot.canvas.ax1.get_xlabel() == "OPT step number"
     assert plot.canvas.ax1.get_ylabel() == "Intensity"
+
+    handlers = widget.log.handlers[:]
+    for hndlr in handlers:
+        widget.log.removeHandler(hndlr)
+        hndlr.close()
+
+
+# similar tests for FlBleachCanvas
+def test_PlotDialog2(request):
+    """
+    Test the PlotDialog class.
+
+    Parameters:
+    - None
+
+    Returns:
+    - None
+
+    Raises:
+    - AssertionError: If the plot dialog is not created.
+    """
+    _, widget = request.getfixturevalue("prepare_widget_data1")
+    report = {
+        "corr_factors": np.arange(25).reshape((5, 5)),
+    }
+    plot = PlotDialog(widget, report, "FlBleachCanvas")
+    assert plot is not None
+    assert plot.canvas.ax1 is not None
 
     handlers = widget.log.handlers[:]
     for hndlr in handlers:
