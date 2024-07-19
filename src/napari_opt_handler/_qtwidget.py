@@ -163,6 +163,18 @@ class PreprocessingnWidget(QWidget):
         dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         return dlg.exec_()
 
+    def ask_correctTrBleach(self) -> Enum:
+        """Ask the user if they want to correct the fluorescence bleaching."""
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("Confirm Bleach correction")
+        dlg.setText(
+            "Fluorescence bleaching correction is NOT \n",
+            "recommended for transmission images. \n",
+            "Do you want to proceed?",
+        )
+        dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        return dlg.exec_()
+
     def add_bad_pixels_labels(self) -> None:
         """Adds labels for bad pixels to the viewer.
 
@@ -253,7 +265,7 @@ class PreprocessingnWidget(QWidget):
         )
 
         # open widget with a intensity plots
-        self.plotDialog = PlotDialog(self, corr_dict)
+        self.plotDialog = PlotDialog(self, corr_dict, "IntCorrCanvas")
         self.plotDialog.resize(800, 400)
         self.plotDialog.show()
 
@@ -269,6 +281,43 @@ class PreprocessingnWidget(QWidget):
         self.show_image(
             data_corr,
             "Int-corr_" + original_image.name,
+            original_image.contrast_limits,
+        )
+
+    def correctFlBleach(self) -> None:
+        """Corrects the fluorescence bleaching of the image.
+
+        This method performs fluorescence bleaching correction on the selected
+        image layer. It uses the `Correct` class to perform the correction and
+        updates the image data accordingly. If the correction is performed
+        in-place, it also updates the history of the operation.
+        """
+        logging.info("Correcting fluorescence bleaching.")
+        if (
+            self.flagExp == "Transmission"
+            and self.ask_correctTrBleach() == QMessageBox.No
+        ):
+            return
+
+        original_image = self.image_layer_select.value
+        data_corr, corr_dict = self.corr.correct_fl_bleach(original_image.data)
+
+        # open widget with a intensity plots
+        self.plotDialog = PlotDialog(self, corr_dict, "FlBleachCanvas")
+        self.plotDialog.resize(800, 400)
+        self.plotDialog.show()
+
+        # history update
+        if self.history.inplace:
+            new_data = {
+                "operation": "corrFB",
+                "data": data_corr,
+            }
+            data_corr = self.history.update_history(original_image, new_data)
+
+        self.show_image(
+            data_corr,
+            "Fl-bleach-corr_" + original_image.name,
             original_image.contrast_limits,
         )
 
@@ -816,6 +865,18 @@ class PreprocessingnWidget(QWidget):
         )
         self.addButton(boxInt, "Intensity correction", self.correctIntensity)
         tabsCorr.addTab(groupboxInt, "Intensity Corr")
+
+        # create a groupbox for Fluorescence bleaching correction
+        groupboxFlBleach = QGroupBox("FL Bleach corr")
+        boxFlBleach = QVBoxLayout()
+        groupboxFlBleach.setLayout(boxFlBleach)
+
+        self.addButton(
+            boxFlBleach, "FL Bleach correction", self.correctFlBleach
+        )
+        tabsCorr.addTab(groupboxFlBleach, "FL Bleach Corr")
+
+        # adding all correction tabs to the layout
         slayout.addWidget(tabsCorr)
 
         # select ROI
