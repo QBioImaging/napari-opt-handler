@@ -104,6 +104,11 @@ The user chooses the rectangle size and presses the `Intensity correction` butto
 
 - If you want to correct for fluorescence photo-bleaching, current version of the plugin does not provide it. Please submit a feature request or upvote an existing one.
 
+##### Fluorescence Bleaching correction (TO fill)
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png" width="500"/>
+
+Note that this correction does not take care of shadowing which is apparent in the Figure[ref], where the Fluorescence excitation light comes from the right side.
+
 ### ✂️ Other
 #### Binning
 Binning of the stack is possible. Choose the binning factor and press the `Bin Stack` button. The binned stack will be displayed and a notification with the original and new stack shapes will appear. The shape is `(height // bin_factor, width // bin _factor)`, so edge pixels might be missing if your image dimensions are not devisable by `bin_factor`.  Pixel values are calculated as a `mean` of the binned pixels and casted to `numpy.int16`. Binning factor of 1 results in no action.
