@@ -52,20 +52,28 @@ stack1 = np.ones((5, 5, 5)) * 5
 
 return_stack1 = np.ones((5, 5, 5)) * 10
 
+stack2 = np.ones((5, 5, 5)) * 5
+stack2[0] = np.ones((5, 5)) * 10
+
+fl_bleach_corr2 = np.ones((5, 5)) * 5
+fl_bleach_corr2[0] = 10
+
+stack3 = np.ones((6, 4, 3)) * 5
+stack3[0] = np.ones((4, 3)) * 10
+stack3[1] = np.ones((4, 3)) * 7
+
+fl_bleach_corr3 = np.ones((6, 4)) * 5
+fl_bleach_corr3[0] = 10
+fl_bleach_corr3[1] = 7
+
 
 @pytest.mark.parametrize(
     "init_vals, expected",
     [
-        ((), (None, 7, None, None)),  # no xorrections
+        # no xorrections
         ((None,), (None, 7, None, None)),
         ((hot1,), (None, 7, None, None)),
-        (
-            (
-                hot2,
-                5,
-            ),
-            (None, 5, None, None),
-        ),  # with five the cutoff is 10.17
+        # with five the cutoff is 10.17
         (
             (
                 hot2,
@@ -103,20 +111,9 @@ def test_init(init_vals, expected):
         ((), (None, 7, None, None)),  # no xorrections
         ((None,), (None, 7, None, None)),
         ((hot1,), ([], 7, None, None)),
-        (
-            (
-                hot2,
-                5,
-            ),
-            ([], 5, None, None),
-        ),  # with five the cutoff is 10.17
-        (
-            (
-                hot2,
-                4.85,
-            ),
-            ([(2, 1)], 4.85, None, None),
-        ),
+        # with five the cutoff is 10.17
+        ((hot2, 5), ([], 5, None, None)),
+        ((hot2, 4.85), ([(2, 1)], 4.85, None, None)),
     ],
 )
 def test_get_bad_pxs(init_vals, expected):
@@ -147,112 +144,19 @@ def test_get_bad_pxs(init_vals, expected):
         ((hot1,), "both", ([], [], 7, None, None)),
         ((hot1,), "", ([], [], 7, None, None)),
         # with five the cutoff is 10.17
-        (
-            (
-                hot2,
-                5,
-            ),
-            "hot",
-            ([], [], 5, None, None),
-        ),
-        # with five the cutoff is 10.17
-        (
-            (
-                hot2,
-                5,
-            ),
-            "dead",
-            ([], [], 5, None, None),
-        ),
-        # with five the cutoff is 10.17
-        (
-            (
-                hot2,
-                5,
-            ),
-            "both",
-            ([], [], 5, None, None),
-        ),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "",
-            ([], [], 5, None, None),
-        ),
-        (
-            (
-                hot2,
-                4.85,
-            ),
-            "hot",
-            ([(2, 1)], [], 4.85, None, None),
-        ),
-        (
-            (
-                hot2,
-                4.85,
-            ),
-            "dead",
-            ([], [], 4.85, None, None),
-        ),
-        (
-            (
-                hot2,
-                4.85,
-            ),
-            "both",
-            ([(2, 1)], [], 4.85, None, None),
-        ),
-        (
-            (
-                hot2,
-                4.85,
-            ),
-            "",
-            ([(2, 1)], [], 4.85, None, None),
-        ),
-        (
-            (
-                hot3,
-                4,
-            ),
-            "hot",
-            ([(2, 1)], [], 4, None, None),
-        ),
-        (
-            (
-                hot3,
-                2,
-            ),
-            "dead",
-            ([], [(1, 2)], 2, None, None),
-        ),
-        (
-            (
-                hot3,
-                2,
-            ),
-            "both",
-            ([(2, 1)], [(1, 2)], 2, None, None),
-        ),
-        (
-            (
-                hot3,
-                3,
-            ),
-            "both",
-            ([(2, 1)], [], 3, None, None),
-        ),
-        (
-            (
-                hot3,
-                4.85,
-            ),
-            "",
-            ([], [], 4.85, None, None),
-        ),
+        ((hot2, 5), "hot", ([], [], 5, None, None)),
+        ((hot2, 5), "dead", ([], [], 5, None, None)),
+        ((hot2, 5), "both", ([], [], 5, None, None)),
+        ((hot2, 5), "", ([], [], 5, None, None)),
+        ((hot2, 4.85), "hot", ([(2, 1)], [], 4.85, None, None)),
+        ((hot2, 4.85), "dead", ([], [], 4.85, None, None)),
+        ((hot2, 4.85), "both", ([(2, 1)], [], 4.85, None, None)),
+        ((hot2, 4.85), "", ([(2, 1)], [], 4.85, None, None)),
+        ((hot3, 4), "hot", ([(2, 1)], [], 4, None, None)),
+        ((hot3, 2), "dead", ([], [(1, 2)], 2, None, None)),
+        ((hot3, 2), "both", ([(2, 1)], [(1, 2)], 2, None, None)),
+        ((hot3, 3), "both", ([(2, 1)], [], 3, None, None)),
+        ((hot3, 4.85), "", ([], [], 4.85, None, None)),
     ],
 )
 def test_get_bad_pxs2(init_vals, mode, expected):
@@ -281,30 +185,9 @@ def test_get_bad_pxs2(init_vals, mode, expected):
     "inits, img, expected",
     [
         ((hot1,), img1, img1),
-        (
-            (
-                hot2,
-                5,
-            ),
-            img1,
-            img1,
-        ),
-        (
-            (
-                hot2,
-                4,
-            ),
-            img1,
-            img1,
-        ),  # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            img2,
-            img1,
-        ),  # this is correctimg stuff
+        ((hot2, 5), img1, img1),
+        ((hot2, 4), img1, img1),
+        ((hot2, 4), img2, img1),
     ],
 )
 def test_correct_hot(inits, img, expected):
@@ -319,199 +202,29 @@ def test_correct_hot(inits, img, expected):
     "inits, mode_corr, neigh, img, expected",
     [
         ((hot1,), "hot", "n4", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "hot",
-            "n4",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "hot",
-            "n4",
-            img1,
-            (img1, [(2, 1)], []),
-        ),
-        # this is correcting stuff
-        (
-            (
-                hot2,
-                4,
-            ),
-            "hot",
-            "n4",
-            img2,
-            (img1, [(2, 1)], []),
-        ),
+        ((hot2, 5), "hot", "n4", img1, (img1, [], [])),
+        ((hot2, 4), "hot", "n4", img1, (img1, [(2, 1)], [])),
+        ((hot2, 4), "hot", "n4", img2, (img1, [(2, 1)], [])),
         ((hot1,), "dead", "n4", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "dead",
-            "n4",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "dead",
-            "n4",
-            img1,
-            (img1, [], []),
-        ),
-        (
-            (
-                hot2,
-                4,
-            ),
-            "dead",
-            "n4",
-            img2,
-            (img2, [], []),
-        ),
+        ((hot2, 5), "dead", "n4", img1, (img1, [], [])),
+        ((hot2, 4), "dead", "n4", img1, (img1, [], [])),
+        ((hot2, 4), "dead", "n4", img2, (img2, [], [])),
         ((hot1,), "both", "n4", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "both",
-            "n4",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "both",
-            "n4",
-            img1,
-            (img1, [(2, 1)], []),
-        ),
-        (
-            (
-                hot2,
-                4,
-            ),
-            "both",
-            "n4",
-            img2,
-            (img1, [(2, 1)], []),
-        ),
+        ((hot2, 5), "both", "n4", img1, (img1, [], [])),
+        ((hot2, 4), "both", "n4", img1, (img1, [(2, 1)], [])),
+        ((hot2, 4), "both", "n4", img2, (img1, [(2, 1)], [])),
         ((hot1,), "hot", "n8", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "hot",
-            "n8",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "hot",
-            "n8",
-            img1,
-            (img1, [(2, 1)], []),
-        ),
-        # this is correcting stuff
-        (
-            (
-                hot2,
-                4,
-            ),
-            "hot",
-            "n8",
-            img2,
-            (img1, [(2, 1)], []),
-        ),
+        ((hot2, 5), "hot", "n8", img1, (img1, [], [])),
+        ((hot2, 4), "hot", "n8", img1, (img1, [(2, 1)], [])),
+        ((hot2, 4), "hot", "n8", img2, (img1, [(2, 1)], [])),
         ((hot1,), "dead", "n8", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "dead",
-            "n8",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "dead",
-            "n8",
-            img1,
-            (img1, [], []),
-        ),
-        (
-            (
-                hot2,
-                4,
-            ),
-            "dead",
-            "n8",
-            img2,
-            (img2, [], []),
-        ),
+        ((hot2, 5), "dead", "n8", img1, (img1, [], [])),
+        ((hot2, 4), "dead", "n8", img1, (img1, [], [])),
+        ((hot2, 4), "dead", "n8", img2, (img2, [], [])),
         ((hot1,), "both", "n8", img1, (img1, [], [])),
-        (
-            (
-                hot2,
-                5,
-            ),
-            "both",
-            "n8",
-            img1,
-            (img1, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot2,
-                4,
-            ),
-            "both",
-            "n8",
-            img1,
-            (img1, [(2, 1)], []),
-        ),
-        (
-            (
-                hot2,
-                4,
-            ),
-            "both",
-            "n8",
-            img2,
-            (img1, [(2, 1)], []),
-        ),
+        ((hot2, 5), "both", "n8", img1, (img1, [], [])),
+        ((hot2, 4), "both", "n8", img1, (img1, [(2, 1)], [])),
+        ((hot2, 4), "both", "n8", img2, (img1, [(2, 1)], [])),
     ],
 )
 def test_correct_hot2(inits, mode_corr, neigh, img, expected):
@@ -530,115 +243,33 @@ def test_correct_hot2(inits, mode_corr, neigh, img, expected):
     "inits, mode_corr, neigh, img, expected",
     [
         ((hot3,), "hot", "n4", img1, (img1, [], [])),
-        (
-            (
-                hot3,
-                5,
-            ),
-            "hot",
-            "n4",
-            img_bad,
-            (img_bad, [], []),
-        ),  # no action
-        # correcting
-        (
-            (
-                hot3,
-                4,
-            ),
-            "hot",
-            "n4",
-            img_bad,
-            (img_bad_hot_corr_n4, [(2, 1)], []),
-        ),
+        ((hot3, 5), "hot", "n4", img_bad, (img_bad, [], [])),
+        ((hot3, 4), "hot", "n4", img_bad, (img_bad_hot_corr_n4, [(2, 1)], [])),
         ((hot3,), "dead", "n4", img1, (img1, [], [])),
+        ((hot3, 3), "dead", "n4", img_bad, (img_bad, [], [])),
         (
-            (
-                hot3,
-                3,
-            ),
-            "dead",
-            "n4",
-            img_bad,
-            (img_bad, [], []),
-        ),
-        # no action, because img is flat
-        (
-            (
-                hot3,
-                2,
-            ),
+            (hot3, 2),
             "dead",
             "n4",
             img_bad,
             (img_bad_dead_corr_n4, [], [(1, 2)]),
         ),
         ((hot3,), "both", "n4", img1, (img1, [], [])),
-        # only hot corrected
         (
-            (
-                hot3,
-                4,
-            ),
+            (hot3, 4),
             "both",
             "n4",
             img_bad,
             (img_bad_hot_corr_n4, [(2, 1)], []),
         ),
-        # both corrected
-        (
-            (
-                hot3,
-                2,
-            ),
-            "both",
-            "n4",
-            img_bad,
-            (img1, [(2, 1)], [(1, 2)]),
-        ),
-        # TODO: THIS MUST BE FIXED
+        ((hot3, 2), "both", "n4", img_bad, (img1, [(2, 1)], [(1, 2)])),
         ((hot3,), "hot", "n8", img1, (img1, [], [])),
-        (
-            (
-                hot3,
-                5,
-            ),
-            "hot",
-            "n8",
-            img_bad,
-            (img_bad, [], []),
-        ),
-        # this should average also the dead pixel value because it is n8
-        # and the dead pixel is not identified as bad
-        # mean is 4.6, int4.6 is 4
-        (
-            (
-                hot3,
-                4,
-            ),
-            "hot",
-            "n8",
-            img_bad,
-            (img_bad_hot_corr_n8, [(2, 1)], []),
-        ),
+        ((hot3, 5), "hot", "n8", img_bad, (img_bad, [], [])),
+        ((hot3, 4), "hot", "n8", img_bad, (img_bad_hot_corr_n8, [(2, 1)], [])),
         ((hot3,), "dead", "n8", img1, (img1, [], [])),
-        # nothing because 3 std is below
+        ((hot3, 3), "dead", "n8", img_bad, (img_bad, [], [])),
         (
-            (
-                hot3,
-                3,
-            ),
-            "dead",
-            "n8",
-            img_bad,
-            (img_bad, [], []),
-        ),
-        #  dead pixel is identified as bad, hot pixel will be averaged to it
-        (
-            (
-                hot3,
-                2,
-            ),
+            (hot3, 2),
             "dead",
             "n8",
             img_bad,
@@ -646,25 +277,13 @@ def test_correct_hot2(inits, mode_corr, neigh, img, expected):
         ),
         ((hot3,), "both", "n8", img1, (img1, [], [])),
         (
-            (
-                hot3,
-                4,
-            ),
+            (hot3, 4),
             "both",
             "n8",
             img_bad,
             (img_bad_hot_corr_n8, [(2, 1)], []),
         ),
-        (
-            (
-                hot3,
-                2,
-            ),
-            "both",
-            "n8",
-            img_bad,
-            (img1, [(2, 1)], [(1, 2)]),
-        ),
+        ((hot3, 2), "both", "n8", img_bad, (img1, [(2, 1)], [(1, 2)])),
     ],
 )
 def test_correct_hot3(inits, mode_corr, neigh, img, expected):
@@ -762,6 +381,7 @@ def test_correct_dark_bright_except(inits, corr_inputs, expected):
         )
 
 
+# TODO: parametrize integral_bottom
 @pytest.mark.parametrize(
     "inits, corr_int_inputs, expected",
     [
@@ -801,6 +421,64 @@ def test_correct_int(inits, corr_int_inputs, expected):
     assert corrected.shape == expected[0].shape
     assert np.array_equal(corrected, expected[0])
     assert report["mode"] == expected[1]["mode"]
+
+
+def test_correct_int_except():
+    corr = Correct(hot2, 4, dark1, bright2)
+    with pytest.raises(
+        ValueError,
+        match="Unknown mode option, valid is integral, integral_bottom.",
+    ):
+        corr.correct_int(stack1, "nonsense", True, 50, True)
+
+
+def test_correct_int_except2():
+    corr = Correct(hot2, 4, dark1)
+    with pytest.raises(ValueError, match="No bright field image provided."):
+        corr.correct_int(stack1, "integral", True, 50, False)
+
+
+# test correct_fl_bleach method
+# parametrize inputs
+@pytest.mark.parametrize(
+    "inits, corr_inputs, expected",
+    [
+        # this one is flat input array, will only lead to normalization
+        (
+            (hot2, 4, dark1, bright2),
+            stack1,
+            (np.ones(stack1.shape), {"corr_factors": stack1[0]}),
+        ),
+        # stack2 has values 10, will only lead to normalization
+        (
+            (),
+            stack2,
+            (
+                np.ones(stack2.shape),
+                {"corr_factors": fl_bleach_corr2},
+            ),
+        ),
+        (
+            (),
+            stack3,
+            (
+                np.ones(stack3.shape),
+                {"corr_factors": fl_bleach_corr3},
+            ),
+        ),
+    ],
+)
+def test_correct_fl_bleach(inits, corr_inputs, expected):
+    corr = Correct(*inits)
+    corrected, dict_corr = corr.correct_fl_bleach(corr_inputs)
+    assert np.array_equal(corrected, expected[0])
+    # assert number of keys in the dictionary
+    assert len(dict_corr) == len(expected[1])
+    # assert the keys in the dictionary
+    assert dict_corr.keys() == expected[1].keys()
+    assert np.array_equal(
+        dict_corr["corr_factors"], expected[1]["corr_factors"]
+    )
 
 
 # test clip_and_convert_data method

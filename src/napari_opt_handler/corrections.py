@@ -26,6 +26,7 @@ the same as the experimental exposure.
 """
 
 import logging
+from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -237,7 +238,7 @@ class Correct:
         use_bright: bool = True,
         rect_dim: int = 50,
         cast_to_int: bool = True,
-    ) -> np.ndarray:
+    ) -> Tuple[np.ndarray, Dict]:
         """
         Intensity correction over the stack of images which are expected
         to have the same background intensity. It is preferable to
@@ -257,16 +258,21 @@ class Correct:
             NotImplementedError: Checking available correction modes
 
         Returns:
-            np.ndarray: 3D array of the same shape as the img_stack,
-                but intensity corrected
+            Tuple[np.ndarray, Dict]: Corrected 3D stack of images with the
+                same shape as input stack and report of the intensity
+                correction
         """
         # check if stack is 3D array
         if img_stack.ndim != 3:
             raise IndexError("Stack has to have three dimensions.")
+
+        # check if bright field options are compatible
+        if self.bright is None and use_bright is True:
+            raise ValueError("No bright field image provided.")
         # do I want to correct in respect to the bright field
         # basic idea is four corners, integrated
-        # second idea, fit a correction plane into the four corners.
-        if use_bright is True and self.bright is not None:
+        # NotImplemented: second idea, fit a correction plane into the four corners.
+        if use_bright:
             # four corners of the bright
             # this is useless option!!!
             ref = (
@@ -297,7 +303,9 @@ class Correct:
         elif mode == "integral_bottom":
             self.ref = np.mean([np.mean(ref[2]), np.mean(ref[3])])
         else:
-            raise NotImplementedError
+            raise ValueError(
+                "Unknown mode option, valid is integral, integral_bottom.",
+            )
 
         # correct the stack
         corr_stack = np.empty(img_stack.shape, dtype=img_stack.dtype)
@@ -362,7 +370,47 @@ class Correct:
 
         return corr_stack, intCorrReport
 
-    def get_bad_pxs(self, mode: str = "hot") -> list[tuple[int, int]]:
+    def correct_fl_bleach(
+        self, imgStack: np.ndarray
+    ) -> Tuple[np.ndarray, Dict]:
+        """
+        Correct for the fluorescence bleaching along the sinogram.
+        It is assumed that the stack is in form (angles, rows, columns).
+
+        Correction calculates mean intensity along the columns for each angle. This
+        value should be ideally the same along the sinogram acquisition, so these
+        mean values are used to divide each row and angle intensities.
+
+        Args:
+            imgStack (np.array): 3D array of images to be corrected
+
+        Returns:
+            Tuple[np.ndarray, Dict]: Corrected 3D stack of images with the
+                same shape as input stack and report of the bleaching
+                correction
+        """
+        # check if stack is 3D array
+        if imgStack.ndim != 3:
+            raise IndexError("Stack has to have three dimensions.")
+
+        # mean over the stack along the camera columns
+        # these are correction factors to divide by
+        meanSinoColumns = imgStack.mean(axis=2)
+
+        # correct the stack
+        corrStack = imgStack / meanSinoColumns[..., np.newaxis]
+
+        # test for negative values
+        is_positive(corrStack, "Fluorescence")
+
+        # int correction dictionary report
+        flBleachReport = {
+            "corr_factors": meanSinoColumns,
+        }
+
+        return corrStack, flBleachReport
+
+    def get_bad_pxs(self, mode: str = "hot") -> List[Tuple[int, int]]:
         """
         Identify bad pixels from the bad array based on the bad
         std_mult factor threshold. Hot pixel has intensity greater than
