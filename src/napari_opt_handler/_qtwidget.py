@@ -20,14 +20,14 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from .backtrack import Backtrack
-from .corrections import Correct
-from .plotting import PlotDialog
-from .utils import (
+from backtrack import Backtrack
+from corrections import Correct
+from plotting import PlotDialog
+from utils import (
     bin_3d,
     select_roi,
 )
-from .widget_settings import Combo_box, Settings
+from widget_settings import Combo_box, Settings
 
 DEBUG = True
 badPxDict = {
@@ -168,9 +168,9 @@ class PreprocessingnWidget(QWidget):
         dlg = QMessageBox(self)
         dlg.setWindowTitle("Confirm Bleach correction")
         dlg.setText(
-            "Fluorescence bleaching correction is NOT \n",
-            "recommended for transmission images. \n",
-            "Do you want to proceed?",
+            "Fluorescence bleaching correction is NOT \n"
+            "recommended for transmission images. \n"
+            "Do you want to proceed?"
         )
         dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         return dlg.exec_()

@@ -30,7 +30,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from .utils import img_to_int_type, is_positive, rescale_img
+from utils import img_to_int_type, is_positive, rescale_img
 
 
 class Correct:
