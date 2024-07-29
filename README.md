@@ -106,7 +106,7 @@ The user chooses the rectangle size and presses the `Intensity correction` butto
 
 #### Fluorescence Bleaching correction 
 <img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png" width="500"/>
-An option for correcting fluorescence bleaching along the sinogram is also available. For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row. Once the correction is done, a plot showing the mean values along the row axes for each angle appears in the viewer. 
+An option for correcting fluorescence bleaching along the sinogram is also available. For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row. Once the correction is done, a plot showing the calculated mean values for each angle appears in the viewer. 
 This feature assumes that the stack is in the form (angles, rows, columns).
 
 Note that this correction does not take care of shadowing which is apparent in the [Figure], where the Fluorescence excitation light comes from the right side.
