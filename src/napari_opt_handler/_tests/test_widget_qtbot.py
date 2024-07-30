@@ -5,6 +5,8 @@ Tests for Bad pixel correction because it contains
 a dialog window
 """
 
+from copy import copy
+
 import numpy as np
 import pytest
 from qtpy.QtWidgets import QMessageBox
@@ -14,7 +16,7 @@ ans1 = np.zeros((5, 5))
 ans1[2, 1] = 1
 
 # dead pixel should be identified too
-ans2 = ans1.copy()
+ans2 = copy(ans1)
 ans2[1, 2] = 0.1
 
 
@@ -62,7 +64,7 @@ def test_ask_correct_bad_pixels(request, monkeypatch):
     img[0, 1, 2] = 1
     img[0, 2, 1] = 30
 
-    ret = img.copy()
+    ret = copy(img)
     ret[0, 2, 1] = 10
     viewer.layers["img"].data = img
     widget.std_cutoff.val = 2.0
@@ -86,7 +88,7 @@ def test_ask_correctTrBleach(request, monkeypatch):
     )
     img = np.ones((5, 5, 5)) * 4
     img[0] = 5
-    ret = np.ones((5, 5, 5))
+    ret = np.ones((5, 5, 5)) * 5
 
     viewer.layers["img"].data = img
 

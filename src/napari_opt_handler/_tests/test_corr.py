@@ -55,16 +55,16 @@ return_stack1 = np.ones((5, 5, 5)) * 10
 stack2 = np.ones((5, 5, 5)) * 5
 stack2[0] = np.ones((5, 5)) * 10
 
-fl_bleach_corr2 = np.ones((5, 5)) * 5
-fl_bleach_corr2[0] = 10
+fl_bleach_corr2 = np.ones((5, 5)) * 5 / 10
+fl_bleach_corr2[0] = 10 / 10
 
 stack3 = np.ones((6, 4, 3)) * 5
 stack3[0] = np.ones((4, 3)) * 10
 stack3[1] = np.ones((4, 3)) * 7
 
-fl_bleach_corr3 = np.ones((6, 4)) * 5
-fl_bleach_corr3[0] = 10
-fl_bleach_corr3[1] = 7
+fl_bleach_corr3 = np.ones((6, 4)) * 5 / 10
+fl_bleach_corr3[0] = 10 / 10
+fl_bleach_corr3[1] = 7 / 10
 
 
 @pytest.mark.parametrize(
@@ -447,14 +447,13 @@ def test_correct_int_except2():
         (
             (hot2, 4, dark1, bright2),
             stack1,
-            (np.ones(stack1.shape), {"corr_factors": stack1[0]}),
+            (stack1, {"corr_factors": np.ones(stack1[0].shape)}),
         ),
-        # stack2 has values 10, will only lead to normalization
         (
             (),
             stack2,
             (
-                np.ones(stack2.shape),
+                np.ones(stack2.shape) * 10,
                 {"corr_factors": fl_bleach_corr2},
             ),
         ),
@@ -462,7 +461,7 @@ def test_correct_int_except2():
             (),
             stack3,
             (
-                np.ones(stack3.shape),
+                np.ones(stack3.shape) * 10,
                 {"corr_factors": fl_bleach_corr3},
             ),
         ),

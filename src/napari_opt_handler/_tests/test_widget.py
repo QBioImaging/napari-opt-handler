@@ -186,7 +186,7 @@ def test_corrIntensity1(request):
 # test correctFlBleach method
 def test_correctFlBleach1(request, monkeypatch):
     viewer, widget = request.getfixturevalue("prepare_widget_data1")
-    expected = np.ones((10, 5, 5)).astype(np.float64)
+    expected = (10 * np.ones((10, 5, 5))).astype(np.uint16)
 
     widget.inplace.val, widget.track.val = False, False
     widget.updateHistoryFlags()
@@ -213,7 +213,7 @@ def test_correctFlBleach1(request, monkeypatch):
 
 def test_correctFlBleach2(request, monkeypatch):
     viewer, widget = request.getfixturevalue("prepare_widget_data1")
-    expected = np.ones((10, 5, 5)).astype(np.float64)
+    expected = np.ones((10, 5, 5)).astype(np.uint16)
 
     widget.inplace.val, widget.track.val = False, False
     widget.updateHistoryFlags()
