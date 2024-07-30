@@ -21,7 +21,7 @@ and review the napari docs for plugin developers:
 https://napari.org/stable/plugins/index.html
 -->
 
-<img src="https://github.com/QBioImaging/napari-opt-handler/blob/documentation/doc_images/correction_pipeline.gif" width="700"/>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/correction_pipeline.gif" width="700"/>
 
 Jump to:
 - [Usage](#usage)
@@ -29,7 +29,14 @@ Jump to:
   - [Global settings](#settings)
   - [Transmission vs Emission](#trvsfl)
   - [Corrections](#corrections)
+    - [Dark-field and Bright-field](#dark-bright)
+    - [Bad-pixel correction](#bad-pixels)
+    - [Intensity correction](#intensity)
+    - [Fluorescence Bleaching](#fl-bleach)
   - [Other](#other)
+    - [Binning](#bin)
+    - [ROI](#roi)
+    - [-Log](#log)
 - [Installation](#installation)
 - [Troubleshooting installation](#troubleshooting-installation)
 - [Contributing](#contributing)
@@ -39,7 +46,7 @@ Jump to:
 ## 🛀 Usage
 
 ### 🏁 Starting point
-1. Data input streamed from ImSwitch OPT widget (see details here[LINK])
+1. Data input streamed from ImSwitch OPT widget (for details see [ImSwitch docs])
 2. Loaded tomography projections as data stack
 3. Other stack 3D volume data formats
 4. Small example data loaded via `File -> Open Sample`
@@ -52,7 +59,7 @@ When **Inplace operations** is selected, the **Tracking** option becomes availab
 
 Currently, images are kept or casted to `numpy.int16` after the operations, except for the `-log` calculation. We strongly recommend to perform the operation in top to bottom and left to right order, as they appear in the widget, otherwise there is a high chance of running into exceptions or unpredictable behavior. Please [file an issue], if some of the widget logic should be fixed for your pipelines.
 
-<img src="https://github.com/QBioImaging/napari-opt-handler/blob/documentation/doc_images/corrections.png" width="400"/>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/corrections_panel.png" width="400"/>
 
 ### 🌞🌚 Transmission vs Emission
 Transmission experiments are envisioned to be quantitative in the approximation of the Beer-Lambert law, this means that using the bright and dark measurement one can calculate the *absorbance*, or rather *transmittance* as
@@ -70,9 +77,9 @@ The corrected image is shown in the viewer using the original image contrast lim
 #### Dark-field and Bright-field correction
 Combinations of Dark-field and Bright-field corrections are possible for both transmission and emission experiments.
 The user must select the experiment modality and then decide whether to include only one correction (either Dark-field or Bright-field) or both. Once the correction is completed, depending on the **Inplace** setting, either a new layer with the corrected image will appear in the viewer, or the original image layer will be updated.
-**Dark-field correction** alone performs subtraction of the *dark* (`int` operation) image from each image in the image stack, it is always worth applying it. This operation is the same regardless of *Transmission* or *Emission* data.
+**Dark-field correction** alone performs subtraction of the *dark* (`int` operation) image from each image in the image stack, it is always worth applying it. This operation is the same regardless of *Transmission* or *Emission* experimental modality.
 
-**Bright-field correction** is particularly useful for transmission experiments, to correct for varying intensity of the bright background of the images. The *bright* layer can also be used to identify dead pixels. If applied alone, images are divided by bright intensity (`float` division) and then converted to `numpy.int16` for the case of *Transmission* experiment. For *Emission* data, bright field intensity is subtracted from the each image in the stack (`int` operation).
+**Bright-field correction** is particularly useful for transmission experiments, to correct varying intensity of the bright background of the images. The *bright* layer can also be used to identify dead pixels. If applied alone, images are divided by bright intensity (`float` division) and then converted to `numpy.int16` for the case of *Transmission* experiment. For *Emission* data, bright field intensity is subtracted from the each image in the stack (`int` operation).
 
 **Dark + Bright field correction** performed together is calculated for *Transmission*
 ```
@@ -92,17 +99,25 @@ See section [above](#trvsfl) for additional explanation on difference between tr
 #### Bad-pixel correction
 Pixel correction is available for both hot pixels and dead pixels. Once the `Bad pixel correction` button is pressed, bad pixels are identified, and the user can choose to either correct them or visualize them as a new layer in the viewer.
 
-<img src="https://github.com/QBioImaging/napari-opt-handler/blob/documentation/doc_images/bad_pixel.png" width="500"/>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bad_pixel.png" width="500"/>
 
 Correction is performed by considering the values of neighboring pixels. Two options are available for correction: n4 and n8. The n4 option uses the 4 neighboring pixels (up, down, left, and right), while the n8 option considers all 8 neighboring pixels. If a neighboring pixel is a bad pixel itself, it is not considered for correction. The bad pixel value is calculated as `mean` of the neighboring pixel values.
 
 #### Intensity correction
 Once Dark-field, Bright-field and Bad pixels corrections have been applied, it is possible to apply an **Intensity correction** to correct light inhomogeneities along the stack generated by the instability of the illumination source.
-The user chooses the rectangle size and presses the `Intensity correction` button. The average of the pixels in four square regions of the image (with side equal to the rectangle size) will be calculated over the stack and a corrected image will appear in the viewer (if the Inplace operations option is not selected) or the original image will be updated. Additionally, a plot showing the intensities over the stack (`mean` intensity over the 4 rectangular areas of the image) before and after the intensity correction will appear.
+The user chooses the rectangle size and presses the `Intensity correction` button. The average of the pixels in four corners of the image (with side equal to the rectangle size) will be calculated over the stack and a corrected image will appear in the viewer (if the Inplace operations option is not selected) or the original image will be updated. Additionally, a plot showing the intensities over the stack (`mean` intensity over the 4 rectangular areas of the image) before and after the intensity correction will be shown.
 
-<img src="https://github.com/QBioImaging/napari-opt-handler/blob/documentation/doc_images/intensity_correction.png" width="500"/>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/intensity_correction.png" width="500"/>
 
-- If you want to correct for fluorescence photo-bleaching, current version of the plugin does not provide it. Please submit a feature request or upvote an existing one.
+If you want to correct for fluorescence photo-bleaching, see the next [section](#fl-bleach).
+
+#### Fluorescence Bleaching correction
+<a name="sinograms"></a>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png" width="500"/>
+
+For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row in respect to first projection. Once the correction is done, a plot showing the calculated mean values for each angle appears in the viewer. This feature assumes that the stack is in the form `(angles, rows, columns)`.
+
+Note that this correction does not take care of shadowing effects which are apparent in the sinograms [above](#sinograms), taken from a single camera row.The fluorescence excitation light comes from the right in this case, therefore the right side of sinogams show higher FL intensity.
 
 ### ✂️ Other
 #### Binning
@@ -116,7 +131,7 @@ If more than one point is added, only the last point will be considered for ROI 
 #### -Log
 It is possible to calculate the logarithm of the image using the **-Log** function of the widget making details in dark and light areas more visible. This is a physically justified transformation in transmission experiments, because it converts counts to *transmittance*. For *Emission* measurements, it is just a transformation to increase contrast non-linearly for visualization.
 
-<img src="https://github.com/QBioImaging/napari-opt-handler/blob/documentation/doc_images/log_gif.gif" width="700"/>
+<img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/log_gif.gif" width="700"/>
 
 ## 💻 Installation
 
@@ -152,3 +167,4 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
+[ImSwitch docs]: https://imswitch.readthedocs.io/en/stable/use-cases.html
