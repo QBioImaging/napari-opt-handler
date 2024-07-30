@@ -20,14 +20,14 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
-from backtrack import Backtrack
-from corrections import Correct
-from plotting import PlotDialog
-from utils import (
+from .backtrack import Backtrack
+from .corrections import Correct
+from .plotting import PlotDialog
+from .utils import (
     bin_3d,
     select_roi,
 )
-from widget_settings import Combo_box, Settings
+from .widget_settings import Combo_box, Settings
 
 DEBUG = True
 badPxDict = {
