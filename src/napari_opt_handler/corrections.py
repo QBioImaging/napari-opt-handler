@@ -398,14 +398,19 @@ class Correct:
         meanSinoColumns = imgStack.mean(axis=2)
 
         # correct the stack
-        corrStack = imgStack / meanSinoColumns[..., np.newaxis]
+        # I do not want normalization, therefor multiply by first angle intensity.
+        corrStack = (imgStack / meanSinoColumns[..., np.newaxis]) * imgStack[
+            0
+        ][np.newaxis, ...]
 
         # test for negative values
         is_positive(corrStack, "Fluorescence")
 
+        corrStack = img_to_int_type(corrStack, dtype=np.uint16)
+
         # int correction dictionary report
         flBleachReport = {
-            "corr_factors": meanSinoColumns,
+            "corr_factors": meanSinoColumns / meanSinoColumns[0],
         }
 
         return corrStack, flBleachReport

@@ -4,6 +4,7 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
 from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from qtpy.QtWidgets import (
     QDialog,
     QSizePolicy,
@@ -97,12 +98,12 @@ class FlBleachCanvas(FigureCanvas):
             height (int, optional): height of the plot in pixels.
                 Defaults to 300.
         """
-        fig = Figure(figsize=(width, height))
-        self.ax1 = fig.add_subplot()
+        self.fig = Figure(figsize=(width, height))
+        self.ax1 = self.fig.add_subplot()
 
         self.createFigure(data_dict)
 
-        FigureCanvas.__init__(self, fig)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(
@@ -117,10 +118,17 @@ class FlBleachCanvas(FigureCanvas):
             data_dict (dict): Intensity correction dictionary.
         """
         my_cmap = mpl.colormaps.get_cmap("Greys")
-        self.ax1.imshow(
-            data_dict["corr_factors"],
+        im = self.ax1.imshow(
+            data_dict["corr_factors"].T,
             cmap=my_cmap,
             aspect="auto",
         )
-        self.ax1.set_xlabel("Camera row index")
-        self.ax1.set_ylabel("Angle step index")
+
+        # add colorbar
+        divider = make_axes_locatable(self.ax1)
+        cax = divider.append_axes("right", size="2%", pad=0.05)
+        self.fig.colorbar(im, cax=cax, orientation="vertical")
+
+        self.ax1.set_title("Normalized bleaching correction factors")
+        self.ax1.set_ylabel("Camera row index")
+        self.ax1.set_xlabel("Angle step index")
