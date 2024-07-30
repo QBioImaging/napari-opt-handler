@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import napari
-from ._qtwidget import PreprocessingnWidget
+from napari_opt_handler._qtwidget import PreprocessingnWidget
 
 DEBUG = True
 

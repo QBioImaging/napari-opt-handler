@@ -39,7 +39,7 @@ Jump to:
 ## 🛀 Usage
 
 ### 🏁 Starting point
-1. Data input streamed from ImSwitch OPT widget (see details here[LINK])
+1. Data input streamed from ImSwitch OPT widget (for details see [ImSwitch docs](imswitch-opt))
 2. Loaded tomography projections as data stack
 3. Other stack 3D volume data formats
 4. Small example data loaded via `File -> Open Sample`
@@ -104,12 +104,15 @@ The user chooses the rectangle size and presses the `Intensity correction` butto
 
 - If you want to correct for fluorescence photo-bleaching, current version of the plugin does not provide it. Please submit a feature request or upvote an existing one.
 
-#### Fluorescence Bleaching correction 
+#### Fluorescence Bleaching correction
+<a name="sinograms">
 <img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png" width="500"/>
-An option for correcting fluorescence bleaching along the sinogram is also available. For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row. Once the correction is done, a plot showing the calculated mean values for each angle appears in the viewer. 
+</a>
+
+An option for correcting fluorescence bleaching along the sinogram is also available. For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row. Once the correction is done, a plot showing the calculated mean values for each angle appears in the viewer.
 This feature assumes that the stack is in the form (angles, rows, columns).
 
-Note that this correction does not take care of shadowing which is apparent in the [Figure], where the Fluorescence excitation light comes from the right side.
+Note that this correction does not take care of shadowing effects which are apparent in the sinograms [above](#sinograms), taken from a single camera row.The fluorescence excitation light comes from the right in this case, therefore the right side of sinogams show higher FL intensity.
 
 ### ✂️ Other
 #### Binning
@@ -159,4 +162,5 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
-[Figure]: https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/angle_0.png
+[Figure-fl-sino]: https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png
+[imswitch-opt]: https://imswitch.readthedocs.io/en/stable/use-cases.html

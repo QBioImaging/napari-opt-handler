@@ -864,7 +864,7 @@ class PreprocessingnWidget(QWidget):
             write_function=self.set_preprocessing,
         )
         self.addButton(boxInt, "Intensity correction", self.correctIntensity)
-        tabsCorr.addTab(groupboxInt, "Intensity Corr")
+        tabsCorr.addTab(groupboxInt, "Intensity")
 
         # create a groupbox for Fluorescence bleaching correction
         groupboxFlBleach = QGroupBox("FL Bleach corr")
@@ -872,9 +872,9 @@ class PreprocessingnWidget(QWidget):
         groupboxFlBleach.setLayout(boxFlBleach)
 
         self.addButton(
-            boxFlBleach, "FL Bleach correction", self.correctFlBleach
+            boxFlBleach, "FL bleach correction", self.correctFlBleach
         )
-        tabsCorr.addTab(groupboxFlBleach, "FL Bleach Corr")
+        tabsCorr.addTab(groupboxFlBleach, "FL bleach")
 
         # adding all correction tabs to the layout
         slayout.addWidget(tabsCorr)
