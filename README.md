@@ -24,24 +24,25 @@ https://napari.org/stable/plugins/index.html
 <img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/correction_pipeline.gif" width="700"/>
 
 Jump to:
-- [Usage](#usage)
-  - [Starting point](#starting-point)
-  - [Global settings](#settings)
-  - [Transmission vs Emission](#trvsfl)
-  - [Corrections](#corrections)
-    - [Dark-field and Bright-field](#dark-bright)
-    - [Bad-pixel correction](#bad-pixels)
-    - [Intensity correction](#intensity)
-    - [Fluorescence Bleaching](#fl-bleach)
-  - [Other](#other)
+- [Usage](#-usage)
+  - [Starting point](#-starting-point)
+  - [Global settings](#-global-settings)
+  - [Transmission vs Emission](#-transmission-vs-emission)
+  - [Corrections](#-corrections)
+    - [Dark-field and Bright-field](#dark-field-and-bright-field-correction)
+    - [Bad-pixel correction](#bad-pixel-correction)
+    - [Intensity correction](#intensity-correction)
+    - [Fluorescence Bleaching](#fluorescence-bleaching-correction)
+  - [Other](#%EF%B8%8F-other)
     - [Binning](#bin)
     - [ROI](#roi)
-    - [-Log](#log)
-- [Installation](#installation)
+    - [-Log](#-log)
+- [Installation](#-installation)
 - [Troubleshooting installation](#troubleshooting-installation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Issues](#-issues)
+- [Acknowledgements](#-acknowledgements)
 
 ## 🛀 Usage
 
@@ -93,7 +94,7 @@ For the *Emission* data, the combined dark and bright correction applied to *Emi
 (image - dark) - (bright - dark) = image - bright
 ```
 
-See section [above](#trvsfl) for additional explanation on difference between transmission and emission.
+See section [above](#-transmission-vs-emission) for additional explanation on difference between transmission and emission.
 
 
 #### Bad-pixel correction
@@ -109,10 +110,11 @@ The user chooses the rectangle size and presses the `Intensity correction` butto
 
 <img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/intensity_correction.png" width="500"/>
 
-If you want to correct for fluorescence photo-bleaching, see the next [section](#fl-bleach).
+If you want to correct for fluorescence photo-bleaching, see the next [section](#fluorescence-bleaching-correction).
 
 #### Fluorescence Bleaching correction
 <a name="sinograms"></a>
+
 <img src="https://github.com/QBioImaging/napari-opt-handler/blob/main/doc_images/bleach_corr.png" width="500"/>
 
 For each angle, the mean intensity values along the columns are calculated and then used as correction factors to divide the intensity values of each row in respect to first projection. Once the correction is done, a plot showing the calculated mean values for each angle appears in the viewer. This feature assumes that the stack is in the form `(angles, rows, columns)`.
@@ -153,6 +155,12 @@ the coverage at least stays the same before you submit a pull request.
 
 Distributed under the terms of the [BSD-3] license,
 "napari-opt-handler" is free and open source software
+
+## 💜 Acknowledgements
+
+Many people have contributed to this project. The main ones are:
+* Giorgia Tortora and Andrea Bassi (Politecnico Milan)
+* Teresa Correia (CCMAR-Algarve)
 
 ## 🔨 Issues
 
